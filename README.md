@@ -1,4 +1,0 @@
-EndroidPlatform
-===============
-
-Endroid Platform

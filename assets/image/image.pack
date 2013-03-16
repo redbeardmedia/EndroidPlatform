@@ -1,0 +1,56 @@
+
+image.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+splash
+  rotate: false
+  xy: 1, 109
+  size: 480, 288
+  orig: 480, 288
+  offset: 0, 0
+  index: -1
+spaceship
+  rotate: false
+  xy: 1, 75
+  size: 50, 32
+  orig: 50, 32
+  offset: 0, 0
+  index: -1
+alien
+  rotate: false
+  xy: 1, 35
+  size: 34, 38
+  orig: 34, 38
+  offset: 0, 0
+  index: -1
+buttondown
+  rotate: false
+  xy: 53, 75
+  size: 32, 32
+  split: 13, 12, 12, 12
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+buttonup
+  rotate: false
+  xy: 1, 1
+  size: 32, 32
+  split: 12, 12, 12, 12
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+striker
+  rotate: false
+  xy: 37, 57
+  size: 40, 16
+  orig: 40, 16
+  offset: 0, 0
+  index: -1
+bullet
+  rotate: false
+  xy: 483, 392
+  size: 2, 5
+  orig: 2, 5
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,14 @@
+# Android
+
+*.apk
+*.ap_
+*.class
+*.dex
+bin/
+gen/
+res/values/secure.xml
+
+# Eclipse
+
+.classpath
+.project
