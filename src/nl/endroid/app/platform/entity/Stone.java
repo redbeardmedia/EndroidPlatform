@@ -4,6 +4,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
+import nl.endroid.framework.Animation;
 import nl.endroid.framework.Entity;
 
 public class Stone extends Entity
@@ -13,7 +14,7 @@ public class Stone extends Entity
 	{
 		bodyType = BodyType.StaticBody;
 		
-		addAnimation("stone");
+		addAnimation(new Animation("stone"));
 	}
 	
 	protected void createFixture(Shape shape)

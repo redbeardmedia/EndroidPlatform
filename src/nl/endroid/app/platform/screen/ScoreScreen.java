@@ -2,9 +2,9 @@ package nl.endroid.app.platform.screen;
 
 import com.badlogic.gdx.graphics.Color;
 
-import nl.endroid.framework.screen.BaseMenuScreen;
+import nl.endroid.framework.screen.BaseScoreScreen;
 
-public class MenuScreen extends BaseMenuScreen
+public class ScoreScreen extends BaseScoreScreen
 {
 	// LIFECYCLE
 	
@@ -12,8 +12,5 @@ public class MenuScreen extends BaseMenuScreen
 	protected void configure()
 	{
 		backgroundColor = new Color(0.75f, 0.9f, 1.0f, 1.0f);
-		
-		addItem("New game", "game");
-		addItem("Highscores", "score");
 	}
 }
