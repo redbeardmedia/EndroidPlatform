@@ -1,9 +1,7 @@
 package nl.endroid.app.platform.screen;
 
-import java.util.Random;
-
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -11,9 +9,9 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
-import com.badlogic.gdx.utils.Array;
 
 import nl.endroid.app.platform.entity.Coin;
+import nl.endroid.app.platform.entity.Flower;
 import nl.endroid.app.platform.entity.Hero;
 import nl.endroid.app.platform.entity.Stone;
 import nl.endroid.framework.AssetManager;
@@ -23,12 +21,9 @@ import nl.endroid.framework.screen.BaseGameScreen;
 
 public class GameScreen extends BaseGameScreen
 {
-	protected Array<Coin> coins;
-	protected Array<Stone> stones;
 	protected Hero hero;
 	
-	protected float blockWidth;
-	protected float blockHeight;
+	protected float blockSize = 25;
 	
 	protected Integer score;
 	protected Label scoreLabel;
@@ -36,7 +31,7 @@ public class GameScreen extends BaseGameScreen
 	@Override
 	protected void configure()
 	{
-		backgroundColor = new Color(0.75f, 0.9f, 1.0f, 1.0f);
+		
 	}
 	
 	@Override
@@ -49,79 +44,7 @@ public class GameScreen extends BaseGameScreen
 		
 		world.setGravity(new Vector2(0.0f, -20.0f));
 		
-		float currentX = 0.0f;
-		float currentY = 0.0f;
-		
-		Stone stone = new Stone();
-		
-		blockWidth = stone.getWidth();
-		blockHeight = stone.getHeight();
-		
-		stones = new Array<Stone>();
-		
-		// Left wall
-		for (int index = 0; index < 15; index++) {
-			stone = new Stone();
-			stone.createBody(world);
-			stage.addActor(stone);
-			stone.setPosition(currentX, currentY);
-			stones.add(stone);
-			currentY += stone.getHeight();
-		}
-		
-		currentX = stone.getWidth();
-		currentY = 0.0f;
-		
-		// Bottom wall
-		for (int index = 0; index < 100; index++) {
-			stone = new Stone();
-			stone.createBody(world);
-			stage.addActor(stone);
-			stone.setPosition(currentX, currentY);
-			stones.add(stone);
-			currentX += stone.getWidth();
-		}
-		
-		currentX = (int) stone.getWidth() * 2;
-		currentY += stone.getHeight();
-		
-		Random random = new Random();
-		for (int index = 0; index < 100; index++) {
-			if (random.nextBoolean()) {
-				stone = new Stone();
-				stone.createBody(world);
-				stage.addActor(stone);
-				stone.setPosition(currentX, currentY);
-				stones.add(stone);
-			}
-			currentX += stone.getWidth();
-		}
-		
-		// Coins
-		Coin coin = null;
-		coins = new Array<Coin>();
-		
-		currentX = blockWidth;
-		currentY = blockHeight * 4.0f;
-		
-		for (int index = 0; index < 28; index++) {
-			coin = new Coin();
-			coin.createBody(world);
-			coin.setPosition(currentX + 5.5f, currentY + 4.5f);
-			stage.addActor(coin);
-			coins.add(coin);
-			currentX += blockWidth * 2;
-			
-			if (currentX + blockWidth > width) {
-				currentX = blockWidth;
-				currentY -= blockHeight;
-			}
-		}
-		
-		hero = new Hero();
-		hero.createBody(world);
-		hero.setPosition(hero.getWidth() / 2, stone.getHeight() / 2 + hero.getHeight() / 2 + 150);
-		stage.addActor(hero);
+		createLevel("001");
 		
 		world.setContactListener(new ContactListener()
 		{
@@ -146,7 +69,6 @@ public class GameScreen extends BaseGameScreen
 				if (entity1 instanceof Coin || entity2 instanceof Coin) {
 					Coin coin = (entity1 instanceof Coin) ? (Coin) entity1 : (Coin) entity2;
 					coin.destroy();
-					coins.removeValue(coin, true);
 					
 					contact.setEnabled(false);
 					
@@ -176,32 +98,60 @@ public class GameScreen extends BaseGameScreen
 		Gdx.input.setInputProcessor(this);
 	}
 	
+	public void createLevel(String levelName)
+	{
+		FileHandle handle = Gdx.files.internal("level/" + levelName + ".txt");
+		String level = handle.readString();
+		String[] rows = level.split("\n");
+		int currentY = 0;
+		for (int index = rows.length - 1; index >= 0; index--) {
+			int currentX = 0;
+			String row = rows[index];
+			for (int charIndex = 0; charIndex < row.length(); charIndex++) {
+				Entity entity = null;
+				switch (row.charAt(charIndex)) {
+					case 'H':
+						hero = new Hero();
+						entity = hero;
+						break;
+					case 'B':
+						entity = new Stone();
+						break;
+					case 'C':
+						entity = new Coin();
+						break;
+					case 'F':
+						entity = new Flower();
+						break;
+					default:
+						break;
+				}
+				if (entity != null) {
+					entity.createBody(world);
+					stage.addActor(entity);
+					entity.setPosition(currentX, currentY - blockSize / 2 + entity.getHeight() / 2);
+				}
+				currentX += blockSize;
+			}
+			currentY += blockSize;
+		}
+	}
+	
 	@Override
 	public void update(float delta)
 	{
 		super.update(delta);
 		
-		Vector2 velocity = hero.getBody().getLinearVelocity();
-		velocity.x = Gdx.input.getAccelerometerY() * 2;
-		
-		hero.setDirection(velocity.x >= 0 ? Hero.DIRECTION_RIGHT : Hero.DIRECTION_LEFT);
-		
-		hero.getBody().setLinearVelocity(velocity);
-	}
-	
-	@Override
-	public void dispose()
-	{
-		super.dispose();
-		
-		hero.destroyHard();
-		
-		for (Stone stone : stones) {
-			stone.destroyHard();
+		if (Math.abs(Gdx.input.getAccelerometerY()) > 0.5) {
+			Vector2 velocity = hero.getBody().getLinearVelocity();
+			velocity.x = Gdx.input.getAccelerometerY() * 2;
+			hero.setDirection(velocity.x >= 0 ? Hero.DIRECTION_RIGHT : Hero.DIRECTION_LEFT);
+			hero.getBody().setLinearVelocity(velocity);
 		}
 		
-		for (Coin coin : coins) {
-			coin.destroyHard();
+		if (hero.getY() < - blockSize) {
+			dispose();
+			show();
 		}
 	}
 	

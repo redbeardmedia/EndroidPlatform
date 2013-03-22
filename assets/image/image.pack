@@ -68,3 +68,10 @@ stone
   orig: 25, 25
   offset: 0, 0
   index: -1
+flower
+  rotate: false
+  xy: 131, 117
+  size: 14, 16
+  orig: 14, 16
+  offset: 0, 0
+  index: -1
