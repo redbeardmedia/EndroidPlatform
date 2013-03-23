@@ -4,7 +4,6 @@ import java.util.Random;
 
 import nl.endroid.framework.Animation;
 import nl.endroid.framework.Entity;
-import nl.endroid.framework.Utils;
 
 public class Cloud extends Entity
 {
