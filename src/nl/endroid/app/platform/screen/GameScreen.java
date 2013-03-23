@@ -48,9 +48,9 @@ public class GameScreen extends BaseGameScreen
 		AssetManager.createSound("jump", "jump.wav");
 		AssetManager.createSound("die", "die.wav");
 		
-		world.setGravity(new Vector2(0.0f, -40.0f));
+		world.setGravity(new Vector2(0.0f, -30.0f));
 		
-		createLevel("001");;
+		createLevel("001");
 		
 		world.setContactListener(new ContactListener()
 		{
@@ -208,7 +208,7 @@ public class GameScreen extends BaseGameScreen
 	public boolean touchDown(int x, int y, int pointer, int button)
 	{
 		if (hero.getState() != Hero.STATE_JUMPING) {
-			hero.getBody().applyForce(0.0f, 90f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
+			hero.getBody().applyForce(0.0f, 70f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
 			hero.setState(Hero.STATE_JUMPING);
 			AssetManager.playSound("jump");
 		}
