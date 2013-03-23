@@ -23,6 +23,8 @@ public class Hero extends Entity
 	protected Float currentX = null;
 	protected Float currentY = null;
 	
+	protected boolean jumpTopReached = false;
+	
 	@Override
 	protected void configure()
 	{
@@ -73,6 +75,9 @@ public class Hero extends Entity
 		
 		// Move from jumping state to walking state
 		if (state == STATE_JUMPING && getY() < currentY) {
+			jumpTopReached = true;
+		}
+		if (state == STATE_JUMPING && jumpTopReached && getY() >= currentY) {
 			setState(STATE_WALKING);
 		}
 		
@@ -97,6 +102,8 @@ public class Hero extends Entity
 				startAnimation("hero-jump");
 				break;
 		}
+		
+		jumpTopReached = false;
 		
 		this.state = state;
 	}

@@ -12,6 +12,6 @@ public class Coin extends Entity
 	{
 		bodyType = BodyType.StaticBody;
 		
-		addAnimation(new Animation("coin", 14, 16, 4, 0.2f));
+		addAnimation(new Animation("coin", 14, 16, 4, 0.2f));;
 	}
 }

@@ -1,5 +1,7 @@
 package nl.endroid.app.platform.screen;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.math.Vector2;
@@ -9,10 +11,13 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.utils.Array;
 
+import nl.endroid.app.platform.entity.Cloud;
 import nl.endroid.app.platform.entity.Coin;
 import nl.endroid.app.platform.entity.Flower;
 import nl.endroid.app.platform.entity.Hero;
+import nl.endroid.app.platform.entity.Sky;
 import nl.endroid.app.platform.entity.Stone;
 import nl.endroid.framework.AssetManager;
 import nl.endroid.framework.Entity;
@@ -23,7 +28,7 @@ public class GameScreen extends BaseGameScreen
 {
 	protected Hero hero;
 	
-	protected float blockSize = 25;
+	protected Integer blockSize = 25;
 	
 	protected Integer score;
 	protected Label scoreLabel;
@@ -41,8 +46,9 @@ public class GameScreen extends BaseGameScreen
 		
 		AssetManager.createSound("coin", "coin.wav");
 		AssetManager.createSound("jump", "jump.wav");
+		AssetManager.createSound("die", "die.wav");
 		
-		world.setGravity(new Vector2(0.0f, -20.0f));
+		world.setGravity(new Vector2(0.0f, -40.0f));
 		
 		createLevel("001");
 		
@@ -88,8 +94,7 @@ public class GameScreen extends BaseGameScreen
 		
 		score = 0;
 		
-		scoreLabel = application.getLabel(score.toString(), "black");
-		scoreLabel.setX(width - 60);
+		scoreLabel = application.getLabel(score.toString(), "white");
 		scoreLabel.setY(height - scoreLabel.getHeight() - 10);
 		scoreLabel.setWidth(50);
 		scoreLabel.setAlignment(Align.right);
@@ -104,12 +109,16 @@ public class GameScreen extends BaseGameScreen
 		String level = handle.readString();
 		String[] rows = level.split("\n");
 		int currentY = 0;
+		int maxLength = 0;
+		Array<Entity> entities = new Array<Entity>();
 		for (int index = rows.length - 1; index >= 0; index--) {
-			int currentX = 0;
-			String row = rows[index];
-			for (int charIndex = 0; charIndex < row.length(); charIndex++) {
+			int currentX = -blockSize;
+			rows[index] = "B " + rows[index] + " B";
+			String[] row = rows[index].split(" ");
+			maxLength = Math.max(maxLength, row.length);
+			for (int columnIndex = 0; columnIndex < row.length; columnIndex++) {
 				Entity entity = null;
-				switch (row.charAt(charIndex)) {
+				switch (row[columnIndex].charAt(0)) {
 					case 'H':
 						hero = new Hero();
 						entity = hero;
@@ -126,14 +135,31 @@ public class GameScreen extends BaseGameScreen
 					default:
 						break;
 				}
+				Sky sky = new Sky();
+				stage.addActor(sky);
+				sky.setPosition(currentX, currentY);
 				if (entity != null) {
 					entity.createBody(world);
-					stage.addActor(entity);
 					entity.setPosition(currentX, currentY - blockSize / 2 + entity.getHeight() / 2);
+					entities.add(entity);
 				}
 				currentX += blockSize;
 			}
 			currentY += blockSize;
+		}
+		
+		// Add clouds
+		Random random = new Random();
+		for (int index = 0; index < 10; index++) {
+			Cloud cloud = new Cloud();
+			stage.addActor(cloud);;
+			cloud.setMax(maxLength * blockSize);
+			cloud.setPosition(random.nextInt(maxLength * blockSize), random.nextInt(rows.length * blockSize));
+		}
+		
+		// Add actors
+		for (Entity entity : entities) {
+			stage.addActor(entity);
 		}
 	}
 	
@@ -142,24 +168,47 @@ public class GameScreen extends BaseGameScreen
 	{
 		super.update(delta);
 		
-		if (Math.abs(Gdx.input.getAccelerometerY()) > 0.5) {
-			Vector2 velocity = hero.getBody().getLinearVelocity();
-			velocity.x = Gdx.input.getAccelerometerY() * 2;
-			hero.setDirection(velocity.x >= 0 ? Hero.DIRECTION_RIGHT : Hero.DIRECTION_LEFT);
-			hero.getBody().setLinearVelocity(velocity);
+		float speed = Gdx.input.getAccelerometerY();
+		
+		if (Math.abs(speed) < 0.2) {
+			speed = 0;
 		}
 		
-		if (hero.getY() < - blockSize) {
+		Vector2 velocity = hero.getBody().getLinearVelocity();
+		velocity.x = speed * 2;
+		if (velocity.x > 0.2) {
+			hero.setDirection(Hero.DIRECTION_RIGHT);
+		} else if (velocity.x < -0.2) {
+			hero.setDirection(Hero.DIRECTION_LEFT);
+		}
+		hero.getBody().setLinearVelocity(velocity);
+		
+		if (hero.getY() < - blockSize * 2) {
+			AssetManager.playSound("die");
 			dispose();
 			show();
 		}
+		
+		float cameraX = hero.getX();
+		
+		if (cameraX > stage.getWidth() + width) {
+			cameraX = stage.getWidth() + width;
+		}
+		if (cameraX < width / 2) {
+			cameraX = width / 2;
+		}
+		
+		scoreLabel.setX(cameraX + width / 2 - 60);
+		
+		camera.position.set(cameraX, camera.position.y, 0);
+		camera.update();
 	}
 	
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button)
 	{
 		if (hero.getState() != Hero.STATE_JUMPING) {
-			hero.getBody().applyForce(0.0f, 50f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
+			hero.getBody().applyForce(0.0f, 90f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
 			hero.setState(Hero.STATE_JUMPING);
 			AssetManager.playSound("jump");
 		}
