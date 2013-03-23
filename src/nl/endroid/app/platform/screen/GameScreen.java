@@ -50,7 +50,7 @@ public class GameScreen extends BaseGameScreen
 		
 		world.setGravity(new Vector2(0.0f, -40.0f));
 		
-		createLevel("001");
+		createLevel("001");;
 		
 		world.setContactListener(new ContactListener()
 		{
@@ -181,7 +181,7 @@ public class GameScreen extends BaseGameScreen
 		} else if (velocity.x < -0.2) {
 			hero.setDirection(Hero.DIRECTION_LEFT);
 		}
-		hero.getBody().setLinearVelocity(velocity);
+		hero.setSpeed(velocity);
 		
 		if (hero.getY() < - blockSize * 2) {
 			AssetManager.playSound("die");

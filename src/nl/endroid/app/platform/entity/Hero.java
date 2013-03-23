@@ -1,6 +1,7 @@
 package nl.endroid.app.platform.entity;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Shape;
 
@@ -111,6 +112,16 @@ public class Hero extends Entity
 	public int getState()
 	{
 		return state;
+	}
+	
+	public void setSpeed(Vector2 velocity)
+	{
+		getBody().setLinearVelocity(velocity);
+		
+		float frameRate = 0.4f / Math.abs(velocity.x);
+		for (Animation animation : animations.values()) {
+			animation.setFrameRate(frameRate);
+		}
 	}
 	
 	public void setDirection(int direction)

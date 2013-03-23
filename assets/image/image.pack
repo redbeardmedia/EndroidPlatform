@@ -5,35 +5,42 @@ filter: Nearest,Nearest
 repeat: none
 splash
   rotate: false
-  xy: 1, 166
+  xy: 1, 198
   size: 480, 288
   orig: 480, 288
   offset: 0, 0
   index: -1
 cloud
   rotate: false
-  xy: 1, 135
+  xy: 1, 167
   size: 150, 29
   orig: 150, 29
   offset: 0, 0
   index: -1
 hero-walk
   rotate: false
-  xy: 1, 69
+  xy: 1, 101
+  size: 44, 64
+  orig: 44, 64
+  offset: 0, 0
+  index: -1
+_hero-walk
+  rotate: false
+  xy: 1, 35
   size: 44, 64
   orig: 44, 64
   offset: 0, 0
   index: -1
 coin
   rotate: false
-  xy: 153, 148
+  xy: 153, 180
   size: 56, 16
   orig: 56, 16
   offset: 0, 0
   index: -1
 buttondown
   rotate: false
-  xy: 1, 35
+  xy: 47, 133
   size: 32, 32
   split: 13, 12, 12, 12
   orig: 32, 32
@@ -41,7 +48,7 @@ buttondown
   index: -1
 buttonup
   rotate: false
-  xy: 47, 101
+  xy: 1, 1
   size: 32, 32
   split: 12, 12, 12, 12
   orig: 32, 32
@@ -49,35 +56,35 @@ buttonup
   index: -1
 hero-jump
   rotate: false
-  xy: 483, 422
+  xy: 483, 454
   size: 22, 32
   orig: 22, 32
   offset: 0, 0
   index: -1
 hero-stand
   rotate: false
-  xy: 1, 1
+  xy: 47, 99
   size: 22, 32
   orig: 22, 32
   offset: 0, 0
   index: -1
 sky
   rotate: false
-  xy: 47, 74
+  xy: 81, 140
   size: 25, 25
   orig: 25, 25
   offset: 0, 0
   index: -1
 stone
   rotate: false
-  xy: 81, 108
+  xy: 108, 140
   size: 25, 25
   orig: 25, 25
   offset: 0, 0
   index: -1
 flower
   rotate: false
-  xy: 211, 148
+  xy: 211, 180
   size: 14, 16
   orig: 14, 16
   offset: 0, 0
