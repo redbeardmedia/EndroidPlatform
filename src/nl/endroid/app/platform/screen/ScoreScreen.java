@@ -11,6 +11,6 @@ public class ScoreScreen extends BaseScoreScreen
 	@Override
 	protected void configure()
 	{
-		backgroundColor = new Color(0.75f, 0.9f, 1.0f, 1.0f);
+		backgroundColor = new Color(0.0f, 0.64f, 0.99f, 1.0f);
 	}
 }
