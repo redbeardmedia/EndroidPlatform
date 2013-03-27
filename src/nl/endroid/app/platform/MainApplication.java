@@ -22,7 +22,7 @@ public class MainApplication extends BaseApplication
 		addScreen("game", new GameScreen());
 		addScreen("score", new ScoreScreen());
 		
-		setStartScreen("menu");
+		setStartScreen("game");
 		
 		setFPSLoggerEnabled(false);
 	}
