@@ -2,9 +2,12 @@ package nl.endroid.app.platform.screen;
 
 import java.util.Random;
 
+import box2dLight.PointLight;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -13,6 +16,7 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectMap;
 
 import nl.endroid.app.platform.entity.Coin;
 import nl.endroid.app.platform.entity.Flower;
@@ -21,25 +25,32 @@ import nl.endroid.app.platform.entity.Sky;
 import nl.endroid.app.platform.entity.Stone;
 import nl.endroid.framework.AssetManager;
 import nl.endroid.framework.Entity;
+import nl.endroid.framework.EntityPool;
 import nl.endroid.framework.Utils;
 import nl.endroid.framework.screen.BaseGameScreen;
 
 public class GameScreen extends BaseGameScreen
 {
 	protected Hero hero;
+	protected Float maxSpeed = 4f;
 	
-	protected Float maxSpeed = 2.5f;
-	protected Integer levelHeight = 13;
-	protected Integer levelCount = 4;
+	protected Sky sky;
+	
+	protected ObjectMap<Integer, String[]> levels;
+	
 	protected Integer right;
 	protected Integer blockSize = 25;
 	
-	protected Array<Entity> wall;
-	protected Array<Entity> levelEntities;
+	protected boolean createBodies = true;
 	
+	protected Array<Entity> levelEntities;
 	
 	protected Integer score;
 	protected Label scoreLabel;
+	
+	protected PointLight pointLight;
+	
+	protected EntityPool pool;
 	
 	@Override
 	protected void configure()
@@ -52,6 +63,17 @@ public class GameScreen extends BaseGameScreen
 	{
 		super.show();
 		
+		pool = new EntityPool();
+		pool.register(Stone.class, 100);
+		pool.register(Coin.class, 100);
+		pool.register(Flower.class, 50);
+		
+		sky = new Sky();
+		sky.setSize(width, height);
+		sky.setY(blockSize / 2);
+		stage.addActor(sky);
+		
+		levels = new ObjectMap<Integer, String[]>();
 		levelEntities = new Array<Entity>();
 		
 		AssetManager.createSound("coin", "coin.wav");
@@ -82,7 +104,9 @@ public class GameScreen extends BaseGameScreen
 				
 				if (entity1 instanceof Coin || entity2 instanceof Coin) {
 					Coin coin = (entity1 instanceof Coin) ? (Coin) entity1 : (Coin) entity2;
-					coin.destroy();
+					
+					pool.put(coin);
+					levelEntities.removeValue(coin, true);
 					
 					contact.setEnabled(false);
 					
@@ -102,9 +126,16 @@ public class GameScreen extends BaseGameScreen
 		
 		right = 0;
 		
-		createWall();
+		loadLevels();
 		
-		addLevel("000");
+		createBodies = true;
+		
+		addLevel(0);
+		addLevel(3);
+		addLevel(3);
+		addLevel(3);
+		
+		createBodies = false;
 		
 		score = 0;
 		
@@ -112,85 +143,89 @@ public class GameScreen extends BaseGameScreen
 		scoreLabel.setY(height - scoreLabel.getHeight() - 10);
 		scoreLabel.setWidth(50);
 		scoreLabel.setAlignment(Align.right);
-	}
-	
-	protected void createWall()
-	{
-		wall = new Array<Entity>();
 		
-		Stone stone;
-		for (int index = 0; index < levelHeight; index++) {
-			stone = new Stone();
-			stone.createBody(world);
-			stone.setPosition(-blockSize, index * blockSize);
-			wall.add(stone);
+		if (rayHandler != null && pointLight == null) {
+			pointLight = new PointLight(rayHandler, 500, Color.RED, 500, width / 2 - 50, height / 2 + 15);
 		}
 	}
 	
-	protected void addLevel(String levelName)
+	protected void loadLevels()
 	{
-		Utils.log("Creating level: " + levelName);
-		
-		FileHandle fileHandle = Gdx.files.internal("level/" + levelName + ".txt");
-		String levelString = fileHandle.readString();
+		int levelIndex = 0;
+		FileHandle fileHandle = null;
+		while (true) {
+			String levelName = Integer.valueOf(levelIndex).toString();
+			while (levelName.length() < 3) {
+				levelName = "0" + levelName;
+			}
+			if (Gdx.files.internal("level/" + levelName + ".txt").exists()) {
+				fileHandle = Gdx.files.internal("level/" + levelName + ".txt");
+			} else {
+				return;
+			}
+			levels.put(levelIndex, fileHandle.readString().split("\n"));
+			levelIndex++;
+		}
+	}
+	
+	protected void addLevel(int levelIndex)
+	{
+		Utils.log("Creating level: " + levelIndex);
 		
 		String[] columns = null;
-		String[] rows = levelString.split("\n");
+		String[] rows = levels.get(levelIndex);
 		for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
 			columns = rows[rows.length - rowIndex - 1].split(" ");
 			for (int columnIndex = 0; columnIndex < columns.length; columnIndex++) {
 				Entity entity = null;
+				float deltaY = 0.0f;
 				switch (columns[columnIndex].charAt(0)) {
 					case 'H':
 						hero = new Hero();
 						entity = hero;
+						deltaY = entity.getHeight() / 2 - blockSize / 2;
 						break;
 					case 'B':
-						entity = new Stone();
+						entity = (Stone) pool.get(Stone.class);
+						deltaY = entity.getHeight() / 2 - blockSize / 2;
 						break;
 					case 'C':
-						entity = new Coin();
+						entity = (Coin) pool.get(Coin.class);
+						deltaY = 0.0f;
 						break;
 					case 'F':
-						entity = new Flower();
+						entity = (Flower) pool.get(Flower.class);
+						deltaY = entity.getHeight() / 2 - blockSize / 2;
 						break;
 					default:
 						break;
 				}
-				Sky sky = new Sky();
-				stage.addActor(sky);
-				sky.setPosition(right + columnIndex * blockSize, rowIndex * blockSize);
-				levelEntities.add(sky);
 				if (entity != null) {
 					entity.createBody(world);
 					stage.addActor(entity);
-					entity.setPosition(right + columnIndex * blockSize, rowIndex * blockSize - blockSize / 2 + entity.getHeight() / 2);
+					entity.setPosition(right + columnIndex * blockSize, rowIndex * blockSize + deltaY);
 					levelEntities.add(entity);
 				}
-			}
-		}
-		
-		// Add sky
-		for (Entity entity : levelEntities) {
-			if (entity instanceof Sky && entity.getStage() != null) {
-				stage.addActor(entity);
 			}
 		}
 		
 		// Add clouds
 //		for (int index = 0; index < 10; index++) {
 //			Cloud cloud = new Cloud();
-//			stage.addActor(cloud);;
+//			stage.addActor(cloud);
 //			cloud.setMax(maxLength * blockSize);
 //			cloud.setPosition(random.nextInt(maxLength * blockSize), random.nextInt(rows.size * blockSize));
 //		}
 		
-		// Add actors
+		// Arrange currently visible actors
 		for (Entity entity : levelEntities) {
-			if (!(entity instanceof Sky) && entity.getStage() != null) {
-				stage.addActor(entity);
+			if (entity.getStage() != null) {
+				//stage.addActor(entity);
 			}
 		}
+		
+		// Hero always on top
+		stage.addActor(hero);
 		
 		right += columns.length * blockSize;
 	}
@@ -239,6 +274,10 @@ public class GameScreen extends BaseGameScreen
 		}
 		
 		hero.setSpeed(velocity);
+		
+		if (pointLight != null) {
+			pointLight.setPosition(hero.getPosition());
+		}
 	}
 	
 	protected void updateCamera()
@@ -250,6 +289,16 @@ public class GameScreen extends BaseGameScreen
 		}
 		
 		cameraX = Math.max(cameraX, camera.position.x);
+		
+		Vector2 position = hero.getPosition();
+		if (position.x < cameraX - width / 2 + blockSize / 2) {
+			position.x = cameraX - width / 2 + blockSize / 2;
+			hero.setPosition(position);
+		}
+		
+		Vector2 skyPosition = sky.getPosition();
+		skyPosition.x = cameraX - width / 2 + blockSize / 2;
+		sky.setPosition(skyPosition);
 		
 		scoreLabel.setX(cameraX + width / 2 - 60);
 		
@@ -264,26 +313,17 @@ public class GameScreen extends BaseGameScreen
 		// Add levels to the right
 		Random random = new Random();
 		while (camera.position.x + width > right) {
-			Integer level = random.nextInt(levelCount) + 1;
-			String levelName = level.toString();
-			while (levelName.length() < 3) {
-				levelName = "0" + levelName;
-			}
-			addLevel(levelName);
+			int level = random.nextInt(levels.size - 1) + 1;
+			addLevel(level);
 		}
 		
 		// Remove levels from the left
 		float cameraLeft = camera.position.x - width / 2 - blockSize;
 		for (Entity entity : levelEntities) {
 			if (entity.getX() < cameraLeft) {
-				entity.destroy();
+				pool.put(entity);
 				levelEntities.removeValue(entity, true);
 			}
-		}
-		
-		// Move the wall to always match the left
-		for (int index = 0; index < wall.size; index++) {
-			wall.get(index).setPosition(cameraLeft - 5, index * blockSize);
 		}
 	}
 	
@@ -319,7 +359,7 @@ public class GameScreen extends BaseGameScreen
 	public boolean touchDown(int x, int y, int pointer, int button)
 	{
 		if (hero.getState() != Hero.STATE_JUMPING) {
-			hero.getBody().applyForce(0.0f, 70f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
+			hero.getBody().applyForce(0.0f, 90f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
 			hero.setState(Hero.STATE_JUMPING);
 			AssetManager.playSound("jump");
 		}
