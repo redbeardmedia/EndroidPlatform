@@ -1,3 +1,10 @@
+/*
+ * (c) Jeroen van den Enden <info@endroid.nl>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 package nl.endroid.app.platform.screen;
 
 import java.util.Random;
@@ -25,7 +32,6 @@ import nl.endroid.app.platform.entity.Sky;
 import nl.endroid.app.platform.entity.Stone;
 import nl.endroid.framework.AssetManager;
 import nl.endroid.framework.Entity;
-import nl.endroid.framework.EntityPool;
 import nl.endroid.framework.Utils;
 import nl.endroid.framework.screen.BaseGameScreen;
 
@@ -50,8 +56,6 @@ public class GameScreen extends BaseGameScreen
 	
 	protected PointLight pointLight;
 	
-	protected EntityPool pool;
-	
 	@Override
 	protected void configure()
 	{
@@ -63,7 +67,6 @@ public class GameScreen extends BaseGameScreen
 	{
 		super.show();
 		
-		pool = new EntityPool();
 		pool.register(Stone.class, 100);
 		pool.register(Coin.class, 100);
 		pool.register(Flower.class, 50);
