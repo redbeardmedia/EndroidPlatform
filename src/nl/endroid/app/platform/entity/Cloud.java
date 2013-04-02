@@ -9,18 +9,23 @@ package nl.endroid.app.platform.entity;
 
 import java.util.Random;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 import nl.endroid.framework.Animation;
 import nl.endroid.framework.Entity;
 
 public class Cloud extends Entity
 {
-	protected float max;
+	protected Sky sky;
 	protected float speed;
+	
+	protected Random random;
 	
 	@Override
 	protected void configure()
 	{
-		Random random = new Random();
+		random = new Random();
 		
 		speed = random.nextFloat();
 		
@@ -34,19 +39,31 @@ public class Cloud extends Entity
 	@Override
 	public void act(float delta)
 	{
-		this.setX(this.getX() + speed * 3 - 1.5f);
+		this.setX(this.getX() + speed * 2 - 1.0f);
 		
-		if (this.getX() > max + getWidth()) {
-			this.setX(-getWidth());;
+		if (this.getX() > sky.getWidth() + getWidth()) {
+			this.setY(random.nextFloat() * sky.getHeight());
+			this.setX(-getWidth());
 		}
 		
 		if (this.getX() < -getWidth()) {
-			this.setX(max + getWidth());
+			this.setY(random.nextFloat() * sky.getHeight());
+			this.setX(sky.getWidth() + getWidth());
 		}
 	}
 	
-	public void setMax(float max)
+	@Override
+	public void draw(SpriteBatch batch, float parentAlpha)
 	{
-		this.max = max;
+		Color color = getColor();
+		
+		batch.setColor(color.r, color.g, color.b, color.a * parentAlpha);
+		
+		currentAnimation.draw(batch, sky.getX() + getX(), sky.getY() + getY(), getWidth(), getHeight(), getScaleX(), getScaleY(), getRotation());
+	}
+	
+	public void setSky(Sky sky)
+	{
+		this.sky = sky;
 	}
 }
