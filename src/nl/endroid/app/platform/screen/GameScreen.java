@@ -377,7 +377,7 @@ public class GameScreen extends BaseGameScreen
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button)
 	{
-		if (hero.getState() != Hero.STATE_JUMPING) {
+		if (hero.getState() != Hero.STATE_JUMPING && hero.getBody() != null) {
 			hero.getBody().applyForce(0.0f, 90f, Utils.pixelsToMeters(hero.getX()), Utils.pixelsToMeters(hero.getY()));
 			hero.setState(Hero.STATE_JUMPING);
 			AssetManager.playSound("jump");
