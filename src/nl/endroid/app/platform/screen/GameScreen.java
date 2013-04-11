@@ -33,6 +33,7 @@ import nl.endroid.app.platform.entity.Sky;
 import nl.endroid.app.platform.entity.Stone;
 import nl.endroid.framework.AssetManager;
 import nl.endroid.framework.Entity;
+import nl.endroid.framework.ShuffleRandom;
 import nl.endroid.framework.Utils;
 import nl.endroid.framework.screen.BaseGameScreen;
 
@@ -44,6 +45,7 @@ public class GameScreen extends BaseGameScreen
 	protected Sky sky;
 	
 	protected Random random;
+	protected ShuffleRandom<Integer> levelIndexes;
 	
 	protected ObjectMap<Integer, String[]> levels;
 	
@@ -137,14 +139,12 @@ public class GameScreen extends BaseGameScreen
 		right = 0;
 		
 		loadLevels();
+		
 		createClouds();
 		
 		createBodies = true;
 		
 		addLevel(0);
-		addLevel(3);
-		addLevel(3);
-		addLevel(3);
 		
 		createBodies = false;
 		
@@ -172,6 +172,9 @@ public class GameScreen extends BaseGameScreen
 			if (Gdx.files.internal("level/" + levelName + ".txt").exists()) {
 				fileHandle = Gdx.files.internal("level/" + levelName + ".txt");
 			} else {
+				Array<Integer> levelIndexArray = levels.keys().toArray();
+				levelIndexArray.removeIndex(0);
+				levelIndexes = new ShuffleRandom<Integer>(levelIndexArray);
 				return;
 			}
 			levels.put(levelIndex, fileHandle.readString().split("\n"));
@@ -328,14 +331,15 @@ public class GameScreen extends BaseGameScreen
 	{
 		// Add levels to the right
 		while (camera.position.x + width > right) {
-			int level = random.nextInt(levels.size - 1) + 1;
-			addLevel(level);
+			int index = levelIndexes.next();
+			addLevel(index);
 		}
 		
 		// Remove levels from the left
 		float cameraLeft = camera.position.x - width / 2 - blockSize;
 		for (Entity entity : levelEntities) {
 			if (entity.getX() < cameraLeft) {
+				Utils.log(entity);
 				pool.put(entity);
 				levelEntities.removeValue(entity, true);
 			}
